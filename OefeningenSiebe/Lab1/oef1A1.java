@@ -1,13 +1,11 @@
-public class oef1A1 {
-
+public class oef1A1
+{
 	public static void main (String arg[])
 	{
-		tafels();
+		tafel();
 	}
-
-	public static void tafels()
+	public static void tafel()
 	{
-
 		int x;
 		int y;
 		for(x=1; x<10; x++)
@@ -18,5 +16,4 @@ public class oef1A1 {
 			}
 		}
 	}
-
 }

@@ -1,61 +1,38 @@
 /**
-
 *
-
 * Dit is een programma
-
 *
 * @author Siebe Vanden Eynden
 *
-
 */
 
 
 public class EersteProg
 {
-
-
-
   /**
   * Dit is de main methode
-
-  * @param arg[] Dit zijn parameters die met de commandline meekomen
-
+  *
+  * @param arg[] Parameters van commandline
   */
 
   public static void main (String arg [])
-
   {
-
-    drukaf(100);
-
+    afdrukken(100);
   }
 
-
-
   /**
-
-  * Deze methode drukt getallen af tot m
-
-  * @param m Deze parameter geeft aan tot welke waarde je gaat afdrukken
-
+  * Getal afdrukken, zeker dat!
+  *
+  * @param m Af te drukken waarde
   */
-
-  public static void drukaf(int m) 
-
+  public static void afdrukken(int m) 
   {
     int a;
     for(a=0; a<m; a++)
     {
-
       System.out.println(a);
-
     }
 
-
     System.out.println(~10);
-
   }
-
-
 }
