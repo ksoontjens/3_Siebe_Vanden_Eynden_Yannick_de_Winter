@@ -45,7 +45,16 @@ public class HelloTVXlet implements Xlet, UserEventListener, HBackgroundImageLis
     private HBackgroundDevice bgDev;
     private HBackgroundConfigTemplate bgTemplate;
     private HStillImageBackgroundConfiguration bgConfig;
-    private HBackgroundImage bgImg1 = new HBackgroundImage("background.jpg");
+    private HBackgroundImage bgImg1 = new HBackgroundImage("background5.jpg");
+    
+    private int wonCounter = 0;
+    private int lossCounter = 0;
+    
+    private ButtonComponent tekstLabelWon;
+    private ButtonComponent tekstLabelLoss;
+    private ButtonComponent tekstLabelInstr;
+    
+    private boolean blockInput = false;
 
     
     public HelloTVXlet() {
@@ -81,6 +90,10 @@ public class HelloTVXlet implements Xlet, UserEventListener, HBackgroundImageLis
         {
             System.out.println(e.toString());
         }
+        HSceneTemplate sceneTemplate = new HSceneTemplate();
+      
+        sceneTemplate.setPreference(HSceneTemplate.SCENE_SCREEN_DIMENSION,new HScreenDimension(1.0f, 1.0f), HSceneTemplate.REQUIRED);
+        sceneTemplate.setPreference(HSceneTemplate.SCENE_SCREEN_LOCATION,new HScreenPoint(0.0f, 0.0f), HSceneTemplate.REQUIRED);
     }
 
     public void startXlet() throws XletStateChangeException
@@ -89,6 +102,7 @@ public class HelloTVXlet implements Xlet, UserEventListener, HBackgroundImageLis
         UserEventRepository mijnRep = new UserEventRepository("User event");
         mijnRep.addAllArrowKeys();
         mijnRep.addKey(HRcEvent.VK_ENTER);
+        mijnRep.addKey(HRcEvent.VK_BACK_SPACE);
         
         EventManager mijnMan = EventManager.getInstance();
         mijnMan.addUserEventListener(this,mijnRep);
@@ -159,6 +173,9 @@ public class HelloTVXlet implements Xlet, UserEventListener, HBackgroundImageLis
             buttons[i].getButton().setFocusTraversal(buttons[previousButton].getButton(), buttons[nextButton].getButton(), null, null);
         }
         
+        tekstLabelWon = new ButtonComponent(new DVBColor(255,255,255,179), 500, 0, "Gewonnen: "+wonCounter, scene, 200, 30);
+        tekstLabelLoss = new ButtonComponent(new DVBColor(255,255,255,179), 500, 30, "Verloren: "+lossCounter, scene, 200, 30);
+        tekstLabelInstr = new ButtonComponent(new DVBColor(255,255,255,179), 500, 60, "Backspace voor\r\nnieuw spel", scene, 200, 80);;
         
         scene.validate();
         scene.setVisible(true);
@@ -177,7 +194,6 @@ public class HelloTVXlet implements Xlet, UserEventListener, HBackgroundImageLis
         {
             int newIndex = generateUniqueRandom(selector);
             computerGeneratedRandomizedCorrectColorCode[i] = selector[newIndex];
-            System.out.println(selector[newIndex]);
             System.out.println(selectorNames[newIndex]);
             
             Color[] tempArray = new Color[selector.length-1];
@@ -205,8 +221,6 @@ public class HelloTVXlet implements Xlet, UserEventListener, HBackgroundImageLis
         Random rand = new Random();
         int newRandom = rand.nextInt(selector.length);
         
-        System.out.println("New random: "+newRandom);
-        
         return newRandom;
     }
     
@@ -214,85 +228,113 @@ public class HelloTVXlet implements Xlet, UserEventListener, HBackgroundImageLis
     {
         if(e.getType()==KeyEvent.KEY_PRESSED)
         {
-            if(e.getCode()==HRcEvent.VK_ENTER)
+            if(!blockInput)
             {
-                System.out.println("Cursor: "+cursor);
-                System.out.println("Guess: "+guessCursor);
-                System.out.println("Row: "+row);
-                
-                boolean sameColor = false;
-                
-                for(int i = 0; i < 4; i++)
+                if(e.getCode()==HRcEvent.VK_ENTER)
                 {
-                    System.out.println(buttons[cursor].getColor());
-                    System.out.println(lives[i][row].getColor());
-                    if(buttons[cursor].getColor() == lives[i][row].getColor())
+                    boolean sameColor = false;
+                
+                    for(int i = 0; i < 4; i++)
                     {
-                        sameColor = true;
+                        if(buttons[cursor].getColor() == lives[i][row].getColor())
+                        {
+                            sameColor = true;
+                        }
                     }
+                
+                    if(!sameColor)
+                    {
+                        if(lives[guessCursor][row].isWhite())
+                        {
+                            filledIn++;
+                        }
+                        lives[guessCursor][row].changeColor(buttons[cursor].getColor(), scene);
+                        guessCursor++;
+                        if(guessCursor > 4-1)
+                        {
+                            guessCursor = 0;
+                        }
+                    }
+                
+                    if(filledIn > 3)
+                    {
+                        guessCursor = 0;
+                        row++;
+                        filledIn = 0;
+                        checkCombination();
+                    }
+                    changeHighlight();
                 }
-                
-                if(!sameColor)
+            
+                if(e.getCode()== HRcEvent.VK_LEFT)
                 {
-                    if(lives[guessCursor][row].isWhite())
+                    guessCursor--;
+                    if(guessCursor < 0)
                     {
-                        filledIn++;
+                        guessCursor = 3;
                     }
-                    lives[guessCursor][row].changeColor(buttons[cursor].getColor(), scene);
+                    changeHighlight();
+                }
+                if(e.getCode()== HRcEvent.VK_RIGHT)
+                {
                     guessCursor++;
                     if(guessCursor > 4-1)
                     {
                         guessCursor = 0;
                     }
+                    changeHighlight();
+                }
+            
+                if(e.getCode()== HRcEvent.VK_DOWN)
+                {
+                    cursor++;
+                    if(cursor > numberOfColors-1)
+                    {
+                        cursor = 0;
+                    }
+                }
+                if(e.getCode()==HRcEvent.VK_UP)
+                {
+                    cursor--;
+                    if(cursor < 0)
+                    {
+                        cursor = numberOfColors-1;
+                    }
+                }
+            }
+            if(e.getCode()==HRcEvent.VK_BACK_SPACE)
+            {
+                System.out.println("reset");
+                cursor = 0;
+                row = 0;
+                guessCursor = 0;
+                filledIn=0;
+                changeHighlight();
+                for (int i = 0; i < feedbacks.length; i++)
+                {
+                    feedbacks[i].makeNeutral(scene);
                 }
                 
-                if(filledIn > 3)
-                {
-                    guessCursor = 0;
-                    row++;
-                    filledIn = 0;
-                    checkCombination();
-                }
-                highlightButton.changePos(145+(65*guessCursor), 5+(70*row), scene);
+                // Guess buttons
+                for(int y = 0; y < 4; y++)
+               {
+                    for(int i = 0; i < numberOfColors; i++)
+                    {
+                        lives[y][i].changeColor(Color.WHITE, scene);
+                    }
+               }
+                
+                //Make new random code
+                makeRandomColors();
+                
+                buttons[0].getButton().requestFocus();
+                blockInput = false;
             }
-            
-            if(e.getCode()== HRcEvent.VK_LEFT)
-            {
-                guessCursor--;
-                if(guessCursor < 0)
-                {
-                    guessCursor = 3;
-                }
-                highlightButton.changePos(145+(65*guessCursor), 5+(70*row), scene);
-            }
-            if(e.getCode()== HRcEvent.VK_RIGHT)
-            {
-                guessCursor++;
-                if(guessCursor > 4-1)
-                {
-                    guessCursor = 0;
-                }
-                highlightButton.changePos(145+(65*guessCursor), 5+(70*row), scene);
-            }
-            
-            if(e.getCode()== HRcEvent.VK_DOWN)
-            {
-                cursor++;
-                if(cursor > numberOfColors-1)
-                {
-                    cursor = 0;
-                }
-            }
-            if(e.getCode()==HRcEvent.VK_UP)
-            {
-                cursor--;
-                if(cursor < 0)
-                {
-                    cursor = numberOfColors-1;
-                }
-            }
-            
         }
+    }
+    
+    public void changeHighlight(){
+        highlightButton.changePos(145+(65*guessCursor), 5+(70*row), scene);
     }
     
     public void checkCombination()
@@ -322,18 +364,27 @@ public class HelloTVXlet implements Xlet, UserEventListener, HBackgroundImageLis
                 }
             }
         }
-        
+        feedbacks[row-1].setFeedback(correctColors, correctPlaces, scene);
         if(correctPlaces == 4)
         {
-            System.out.println("juist");
+            wonCounter++;
+            tekstLabelWon.changeText("Gewonnen: "+wonCounter, scene);
+            blockInput = true;
         }
-        else
+        else if(row == numberOfColors)
         {
-            System.out.println("kleur: "+correctColors);
-            System.out.println("plek: "+correctPlaces);
+            row = 0;
+            changeHighlight();
+            lossCounter++;
+            tekstLabelLoss.changeText("Verloren: "+lossCounter, scene);
+            blockInput = true;
+            // Set first rule the correct code
+            for(int y = 0; y < 4; y++)
+            {
+                lives[y][0].changeColor(computerGeneratedRandomizedCorrectColorCode[y],scene);
+                feedbacks[0].setFeedback(0, 4, scene);
+            }
         }
-        
-        feedbacks[row-1].setFeedback(correctColors, correctPlaces, scene);
     }
 
     public void pauseXlet() {

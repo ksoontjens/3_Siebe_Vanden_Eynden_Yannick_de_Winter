@@ -33,16 +33,16 @@ public class ButtonComponent extends HComponent{
         
         scene.add(button);
     }
-    //public ButtonComponent(int x, HScene scene)
-    //{
-    //    this.button=new HTextButton("", x, 160, 60, 60);
-    //    this.button.setBackgroundMode(HVisible.BACKGROUND_FILL);
-    //    this.button.setBackground(Color.WHITE);
-    //    this.color = Color.WHITE;
-    //    this.button.setBordersEnabled(false);
+    public ButtonComponent(Color color, int x, int y, String name, HScene scene, int sizeX, int sizeY)
+    {
+        this.button=new HTextButton(name, x, y, sizeX, sizeY);
+        this.button.setBackgroundMode(HVisible.BACKGROUND_FILL);
+        this.button.setBackground(color);
+        this.button.setBordersEnabled(false);
+        this.button.setForeground(Color.BLACK);
         
-    //    scene.add(button);
-    //}
+        scene.add(button);
+    }
     
     public ButtonComponent(int size, int x, int y, HScene scene)
     {
@@ -54,8 +54,7 @@ public class ButtonComponent extends HComponent{
         
         scene.add(button);
     }
-            
-
+    
     public ButtonComponent(Color color, int x, int size, HScene scene)
     {
         this.button=new HTextButton("", x, 5, size, size);
@@ -92,6 +91,13 @@ public class ButtonComponent extends HComponent{
 
     public void changePos(int x, int y, HScene scene) {
         this.button.setLocation(x, y);
+        scene.repaint();
+    }
+    
+    public void changeText(String newText, HScene scene)
+    {
+        System.out.println("changed");
+        this.button.setTextContent(newText, this.button.NORMAL_STATE);
         scene.repaint();
     }
     
